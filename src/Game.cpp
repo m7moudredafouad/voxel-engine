@@ -8,7 +8,7 @@ static glm::vec4 sky_color       = { 0.6, 0.6, 1.0, 1 };
 static glm::vec4 enemy_color	 = { 1.0, 0.3, 0.3, 1 };
 
 static Window* window = static_cast<Window*>(&Window::getInstance());
-static std::shared_ptr<Cubes> block;
+static std::shared_ptr<Cubes> block_mesh, player_mesh;
 
 void Game::_handle_key() {
     auto& keyboard = Window::keyboard.keys;
@@ -42,13 +42,21 @@ void Game::_handle_mouse() {
 
 void Game::startup() {
     /***WORLD******************************************/
-    block = std::shared_ptr<Cubes>(new Cubes(VERTEX_SIZE, INDEX_SIZE));
-    block->layout({
+    block_mesh = std::shared_ptr<Cubes>(new Cubes(MAX_CUBES * CUBE_VERTEX_SIZE, MAX_CUBES * CUBE_INDEX_SIZE));
+    block_mesh->layout({
         {3, GL_FLOAT, true},
         {4, GL_FLOAT, true},
         });
 
-    block->shader(ShaderEnum::BASIC);
+    block_mesh->shader(ShaderEnum::BASIC);
+
+    player_mesh = std::shared_ptr<Cubes>(new Cubes(CUBE_VERTEX_SIZE, CUBE_INDEX_SIZE));
+    player_mesh->layout({
+        {3, GL_FLOAT, true},
+        {4, GL_FLOAT, true},
+        });
+
+    player_mesh->shader(ShaderEnum::BASIC);
 
     /***LEVEL*********************************/
 }
@@ -60,11 +68,12 @@ void Game::shutdown() {
 void Game::Init() {
     /***Blocks****************************************/
 
-    block->push(Model(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, player_color));
+    player_mesh->push(Model(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, player_color));
+
     for (int x = 0; x < GAME_WIDTH; x++) {
         for (int y = 1; y <= GAME_HEIGHT; y++) {
             for (int z = 0; z < GAME_DEPTH; z++) {
-                block->push(Model(x * BLOCK_SIZE, -y * BLOCK_SIZE, z * BLOCK_SIZE, BLOCK_SIZE, enemy_color));
+                block_mesh->push(Model(x * BLOCK_SIZE, -y * BLOCK_SIZE, z * BLOCK_SIZE, BLOCK_SIZE, enemy_color));
             }
         }
     }
@@ -72,7 +81,7 @@ void Game::Init() {
 
 void Game::Update() {
     /***Player****************************************/
-    auto& player = block->object(0);
+    auto& player = player_mesh->object(0);
 
 
     /***Events****************************************/
@@ -82,7 +91,8 @@ void Game::Update() {
     /***Camera****************************************/
      Camera::Update();
      player.set_position(Camera::Position());
-     block->translate(0);
+     player_mesh->translate(0);
     /***DRAW*********************/
-    block->Render();
+     player_mesh->Render();
+     block_mesh->Render();
 }

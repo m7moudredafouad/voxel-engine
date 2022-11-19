@@ -20,10 +20,7 @@
 #define SPEED			(BLOCK_WIDTH*3)
 
 
-#define MAX_CUBES		(GAME_WIDTH * GAME_HEIGHT * GAME_DEPTH + 1) // + Player
+#define MAX_CUBES		(GAME_WIDTH * GAME_HEIGHT * GAME_DEPTH)
 
-#define MAX_VERTEX		(MAX_CUBES * VERTEX_PER_CUBE)
-#define MAX_INDEX		(MAX_CUBES * INDEX_PER_CUBE)
-
-#define VERTEX_SIZE		(MAX_VERTEX * sizeof(sSpaceVertex))
-#define INDEX_SIZE		(MAX_INDEX * sizeof(uint32_t))
+#define CUBE_VERTEX_SIZE		(VERTEX_PER_CUBE * sizeof(sSpaceVertex))
+#define CUBE_INDEX_SIZE			(INDEX_PER_CUBE * sizeof(uint32_t))
