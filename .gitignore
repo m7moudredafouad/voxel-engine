@@ -1,0 +1,9 @@
+*.vcxproj
+*.filters
+*.user
+x64
+lib/glfw
+lib/glm
+bin
+out
+Debug/
