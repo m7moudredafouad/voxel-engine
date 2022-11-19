@@ -17,10 +17,7 @@
 
 #define GRAVITY			(-0.15f)
 #define JUMP_HEIGHT		(BLOCK_HEIGHT * 2)
-#define SPEED			(BLOCK_WIDTH*3)
+#define SPEED			(BLOCK_SIZE*5.0f)
 
 
 #define MAX_CUBES		(GAME_WIDTH * GAME_HEIGHT * GAME_DEPTH)
-
-#define CUBE_VERTEX_SIZE		(VERTEX_PER_CUBE * sizeof(sSpaceVertex))
-#define CUBE_INDEX_SIZE			(INDEX_PER_CUBE * sizeof(uint32_t))

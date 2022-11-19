@@ -23,15 +23,18 @@ private:
     std::vector<vertex_t> m_vertex;
     std::vector<index_t> m_index;
 
-    uint32_t m_shape[3];
+    uint32_t m_shape[3], m_stride[3];
 
     ShaderEnum m_shader;
     size_t m_size, m_idx_per_vertex;
     bool m_updated_buffers;
 
+private:
+    void load();
 public:
+    /***Constructors**********************************/
+    Chunkmesh(size_t max_size);
     Chunkmesh(std::shared_ptr<VertexBuffer> vb, std::shared_ptr<VertexBuffer> ib);
-    Chunkmesh(size_t vbo_max_size, size_t ibo_max_size);
     ~Chunkmesh() {}
 
     /***Drawer****************************************/
@@ -45,8 +48,20 @@ public:
         return m_object[i];
     }
 
+    int32_t block_index(const std::vector<int>& idx_3d) const;
+
+
     /***Setters***************************************/
     void shader(ShaderEnum shader) { this->m_shader = shader; }
+    void shape(glm::vec3 shape) { // TODO: make it variable size shape
+        m_shape[0] = shape.x;
+        m_shape[1] = shape.y;
+        m_shape[2] = shape.z;
+
+        m_stride[2] = 1;
+        m_stride[1] = shape.z;
+        m_stride[0] = shape.z * shape.y;
+    }
     void push(Model obj);
     void remove(size_t i);
 
@@ -55,20 +70,24 @@ public:
     bool check_collision(Model player, eCollisionDir dir);
 };
 
+/***Constructors**********************************/
+template <class vertex_t, class index_t>
+Chunkmesh<vertex_t, index_t>::Chunkmesh(size_t max_size) :
+    Chunkmesh(
+        std::shared_ptr<VertexBuffer>(new VertexBuffer(GL_ARRAY_BUFFER, sizeof(vertex_t) * max_size)),
+        std::shared_ptr<VertexBuffer>(new VertexBuffer(GL_ELEMENT_ARRAY_BUFFER, sizeof(index_t) * max_size))
+    ) {   }
+
 template <class vertex_t, class index_t>
 Chunkmesh<vertex_t, index_t>::Chunkmesh(std::shared_ptr<VertexBuffer> vb,
     std::shared_ptr<VertexBuffer> ib) :
     m_vao(std::shared_ptr<VertexArray>(new VertexArray)),
     m_vbo(vb),
     m_ibo(ib),
+    m_shape{ 0 },
+    m_stride{ 0 },
     m_size(0), m_idx_per_vertex(sizeof(index_t) / sizeof(uint32_t)), m_updated_buffers(false) {   }
 
-template <class vertex_t, class index_t>
-Chunkmesh<vertex_t, index_t>::Chunkmesh(size_t vbo_max_size, size_t ibo_max_size) :
-    Chunkmesh(
-        std::shared_ptr<VertexBuffer>(new VertexBuffer(GL_ARRAY_BUFFER, vbo_max_size)),
-        std::shared_ptr<VertexBuffer>(new VertexBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_max_size))
-    ) {   }
 
 /***Drawer****************************************/
 template <class vertex_t, class index_t>
@@ -78,8 +97,7 @@ void Chunkmesh<vertex_t, index_t>::Render() {
     //TODO: Check if dynamic or static buffers
     Resource::useShader(m_shader);
     if (m_updated_buffers) {
-        m_vbo->bindData(m_vertex, true);
-        m_ibo->bindData(m_index, true);
+        this->load();
         m_updated_buffers = false;
     }
 
@@ -123,14 +141,29 @@ void Chunkmesh<vertex_t, index_t>::layout(std::vector<BufferLayout> layouts) con
     }
 }
 
+/***Getters***************************************/
+template <class vertex_t, class index_t>
+int32_t Chunkmesh<vertex_t, index_t>::block_index(const std::vector<int> & idx_3d) const {
+    int32_t idx = 0, max_size = 1;
+
+    for (int i = 2; i >= 0; i--) {
+        idx += m_stride[i] * idx_3d[i];
+        max_size *= m_shape[i];
+    }
+
+    ASSERT(idx < max_size && idx >= 0, "MESH::index is out of range");
+
+    return idx;
+}
+
 /***Setters***************************************/
 template <class vertex_t, class index_t>
 void Chunkmesh<vertex_t, index_t>::push(Model obj) {
     m_object.push_back(obj);
-    m_vertex.push_back(vertex_t(obj));
-
-    index_t i = m_size++;
-    m_index.push_back(i);
+    //m_vertex.push_back(vertex_t(obj));
+    m_size++;
+    /*index_t i = m_size++;
+    m_index.push_back(i);*/
     m_updated_buffers = true;
 };
 
@@ -140,72 +173,95 @@ void Chunkmesh<vertex_t, index_t>::remove(size_t i) {
     m_size--;
 
     m_object.erase(m_object.begin() + i);
-    m_vertex.erase(m_vertex.begin() + i);
-    m_index.pop_back();
+    /*m_vertex.erase(m_vertex.begin() + i);
+    m_index.pop_back();*/
     m_updated_buffers = true;
+}
+
+template <class vertex_t, class index_t>
+void Chunkmesh<vertex_t, index_t>::load() {
+    m_vertex.clear();
+    m_index.clear();
+    for (int i = 0; i < m_object.size(); i++) {
+        if (m_object[i].isActive()) {
+            m_vertex.push_back(vertex_t(m_object[i]));
+            m_index.push_back(i);
+        }
+    }
+
+    m_vbo->bindData(m_vertex, true);
+    m_ibo->bindData(m_index, true);
 }
 
 /***Behavior**************************************/
 template <class vertex_t, class index_t>
 void Chunkmesh<vertex_t, index_t>::translate(size_t i) {
     ASSERT(i <= m_size, "MESH::index is out of range");
-    m_vertex[i].translate(m_object[i]);
+    //m_vertex[i].translate(m_object[i]);
+    m_object[i].translate();
     m_updated_buffers = true;
 }
 
+
 template <class vertex_t, class index_t>
 bool Chunkmesh<vertex_t, index_t>::check_collision(Model player, eCollisionDir dir) {
-    glm::vec3 player_pos = player.get_position();
+    if (!player.isActive()) return false;
+
+    glm::vec3 player_pos = player.get_position(); // Position of the player in the world
     glm::vec3 player_size = player.get_size();
 
-    // TODO
-    glm::vec3 idx = {   std::round(player_pos.x / player_size.x),
-                        std::round(player_pos.y / player_size.y),
-                        std::round(player_pos.y / player_size.z)
-                    };
+    // Poition of the player in the Array
+    // TODO: Need fix here, Shouldn't depend on player size
+    std::vector<int>idx_3d{ 
+                        (int) std::round(player_pos.x / player_size.x),
+                        (int) std::round(player_pos.y / player_size.y),
+                        (int) std::round(player_pos.z / player_size.z)
+                     };
 
     player.translate();
-    int idx = getBlockIndex(x, y);
+    int idx = block_index(idx_3d); // check collision in the same location of the player
 
-    if (dir & eCollisionDir::LEFT) {
-        idx = getBlockIndex(x - 1, y);
-        if (idx > -1 && player.collides(block->object(idx))) return true;
-    }
+    if (player.collides(m_object[idx])) return true;
 
-    if (dir & eCollisionDir::RIGHT) {
-        idx = getBlockIndex(x + 1, y);
-        if (idx > -1 && player.collides(block->object(idx))) return true;
-    }
+    //if (dir & eCollisionDir::LEFT) {
+    //    idx = block_index(x - 1, y);
+    //    if (player.collides(m_object[idx])) return true;
+    //}
 
-    if (dir & eCollisionDir::TOP) {
-        idx = getBlockIndex(x, y + 1);
-        if (idx > -1 && player.collides(block->object(idx))) return true;
-    }
+    //if (dir & eCollisionDir::RIGHT) {
+    //    idx = block_index(x + 1, y);
+    //    if (player.collides(m_object[idx])) return true;
+    //}
+
+    //if (dir & eCollisionDir::TOP) {
+    //    idx = block_index(x, y + 1);
+    //    if (player.collides(m_object[idx])) return true;
+    //}
 
     if (dir & eCollisionDir::BOTTOM) {
-        idx = getBlockIndex(x, y - 1);
-        if (idx > -1 && player.collides(block->object(idx))) return true;
+        idx = block_index({ idx_3d[0], idx_3d[1] - 1, idx_3d[2]});
+        if (player.collides(m_object[idx])) return true;
     }
 
     if (dir & eCollisionDir::BOTTOM_LEFT) {
-        idx = getBlockIndex(x - 1, y - 1);
-        if (idx > -1 && player.collides(block->object(idx))) return true;
+        idx = block_index({ idx_3d[0] - 1, idx_3d[1] - 1, idx_3d[2] });
+        if (player.collides(m_object[idx])) return true;
     }
 
-    if (dir & eCollisionDir::TOP_LEFT) {
-        idx = getBlockIndex(x - 1, y + 1);
-        if (idx > -1 && player.collides(block->object(idx))) return true;
-    }
+    //if (dir & eCollisionDir::TOP_LEFT) {
+    //    idx = getBlockIndex(x - 1, y + 1);
+    //    if (player.collides(block->object(idx))) return true;
+    //}
 
-    if (dir & eCollisionDir::BOTTOM_RIGHT) {
-        idx = getBlockIndex(x + 1, y - 1);
-        if (idx > -1 && player.collides(block->object(idx))) return true;
-    }
+    /*if (dir & eCollisionDir::BOTTOM_RIGHT) {
+        idx = block_index(x + 1, y - 1);
+        if (player.collides(block->object(idx))) return true;
+    }*/
 
-    if (dir & eCollisionDir::TOP_RIGHT) {
-        idx = getBlockIndex(x + 1, y + 1);
-        if (idx > -1 && player.collides(block->object(idx))) return true;
-    }
+    //if (dir & eCollisionDir::TOP_RIGHT) {
+    //    idx = block_index(x + 1, y + 1);
+    //    if (player.collides(block->object(idx))) return true;
+    //}
 
     return false;
 }

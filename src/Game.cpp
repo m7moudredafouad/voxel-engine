@@ -12,25 +12,44 @@ static std::shared_ptr<Cubes> block_mesh, player_mesh;
 
 void Game::_handle_key() {
     auto& keyboard = Window::keyboard.keys;
+    auto& player = player_mesh->object(0);
+
+    Model player_copy = player;
+
+    glm::vec3 old_pos = player.get_position();
+    glm::vec3 new_pos = player.get_position();
+    auto old_y = old_pos.y;
 
     if (keyboard[GLFW_KEY_W].down) {
-        Camera::handle_keys(GLFW_KEY_W, keyboard[GLFW_KEY_W].delta);
+        old_pos += Camera::Direction() * SPEED * (float)keyboard[GLFW_KEY_W].delta;
+        old_pos.y = old_y;
+        player_copy.set_position(old_pos);
+
+        if (!block_mesh->check_collision(player_copy, FLEFT)) {
+            new_pos = old_pos;
+        }
+        
     }
 
     if (keyboard[GLFW_KEY_S].down) {
-        Camera::handle_keys(GLFW_KEY_S, keyboard[GLFW_KEY_S].delta);
+        old_pos -= Camera::Direction() * SPEED * (float)keyboard[GLFW_KEY_S].delta;
+        old_pos.y = old_y;
     }
 
     if (keyboard[GLFW_KEY_A].down) {
-        Camera::handle_keys(GLFW_KEY_A, keyboard[GLFW_KEY_A].delta);
+        old_pos += Camera::Right() * SPEED * (float)keyboard[GLFW_KEY_A].delta;
+        old_pos.y = old_y;
     }
 
     if (keyboard[GLFW_KEY_D].down) {
-        Camera::handle_keys(GLFW_KEY_D, keyboard[GLFW_KEY_D].delta);
+        old_pos -= Camera::Right() * SPEED * (float)keyboard[GLFW_KEY_D].delta;
+        old_pos.y = old_y;
     }
 
     if (keyboard[GLFW_KEY_SPACE].down) {
     }
+
+    player.set_position(new_pos);
 }
 
 void Game::_handle_mouse() {
@@ -42,23 +61,25 @@ void Game::_handle_mouse() {
 
 void Game::startup() {
     /***WORLD******************************************/
-    block_mesh = std::shared_ptr<Cubes>(new Cubes(MAX_CUBES * CUBE_VERTEX_SIZE, MAX_CUBES * CUBE_INDEX_SIZE));
+    block_mesh = std::shared_ptr<Cubes>(new Cubes(MAX_CUBES));
     block_mesh->layout({
         {3, GL_FLOAT, true},
         {4, GL_FLOAT, true},
         });
 
+    block_mesh->shape({ GAME_WIDTH, GAME_HEIGHT, GAME_DEPTH });
     block_mesh->shader(ShaderEnum::BASIC);
 
-    player_mesh = std::shared_ptr<Cubes>(new Cubes(CUBE_VERTEX_SIZE, CUBE_INDEX_SIZE));
+    player_mesh = std::shared_ptr<Cubes>(new Cubes(1));
     player_mesh->layout({
         {3, GL_FLOAT, true},
         {4, GL_FLOAT, true},
         });
 
+    player_mesh->shape({ 1, 0, 0 });
+
     player_mesh->shader(ShaderEnum::BASIC);
 
-    /***LEVEL*********************************/
 }
 
 void Game::shutdown() {
@@ -66,14 +87,14 @@ void Game::shutdown() {
 }
 
 void Game::Init() {
-    /***Blocks****************************************/
 
     player_mesh->push(Model(BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE, player_color));
 
+    /***Blocks****************************************/
     for (int x = 0; x < GAME_WIDTH; x++) {
         for (int y = 1; y <= GAME_HEIGHT; y++) {
             for (int z = 0; z < GAME_DEPTH; z++) {
-                block_mesh->push(Model(x * BLOCK_SIZE, -y * BLOCK_SIZE, z * BLOCK_SIZE, BLOCK_SIZE, enemy_color));
+                block_mesh->push(Model(x * BLOCK_SIZE, -y * BLOCK_SIZE, z * BLOCK_SIZE, BLOCK_SIZE, z%2&& x %2, enemy_color));
             }
         }
     }
@@ -89,9 +110,9 @@ void Game::Update() {
     _handle_mouse();
     
     /***Camera****************************************/
-     Camera::Update();
-     player.set_position(Camera::Position());
-     player_mesh->translate(0);
+     Camera::Update(player.get_position());
+     player.translate();
+
     /***DRAW*********************/
      player_mesh->Render();
      block_mesh->Render();
