@@ -5,23 +5,9 @@
 #include "../Settings.h"
 
 enum eCollisionDir {
-    LEFT = 0b00000001,
-    RIGHT = 0b00000010,
-    TOP = 0b00000100,
-    BOTTOM = 0b00001000,
-
-    TOP_LEFT = 0b00010000,
-    BOTTOM_LEFT = 0b00100000,
-    TOP_RIGHT = 0b01000000,
-    BOTTOM_RIGHT = 0b10000000,
-
-    FLEFT = 0b00110001,
-    FRIGHT = 0b11000010,
-    FTOP = 0b01010100,
-    FBOTTOM = 0b10101000,
-
-    FVERTICAL = 0b11111100,
-    FHORIZONAL = 0b11110011,
+    BOTTOM = 0,
+    SAME = 1,
+    TOP = 2,
 };
 
 /*

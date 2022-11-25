@@ -5,8 +5,6 @@ glm::mat4 view, proj;
 static glm::vec3 direction, up, right;
 static float pitch, yaw, fov, aspect, znear, zfar;
 
-static float mouse_sensitivity = 1.0f;
-
 void Camera::startup(float fov_) {
     fov = fov_;
     aspect = Window::ratio();
@@ -23,8 +21,8 @@ const glm::vec3 & Camera::Direction() { return direction; }
 
 void Camera::handle_mouse(float dx, float dy, float delta_time) {
 
-  dx *= mouse_sensitivity * delta_time;
-  dy *= mouse_sensitivity * delta_time;
+  dx *= MOUSE_SENSE * delta_time;
+  dy *= MOUSE_SENSE * delta_time;
 
   yaw += dx;
   pitch += dy;
@@ -41,7 +39,11 @@ void Camera::Update(const glm::vec3 & position) {
     right = glm::cross({ 0.0f, 1.0f, 0.0f }, direction);
     up = glm::cross(direction, right);
 
-    view = glm::lookAt(position, position + direction, up);
+    auto pos = position;
+    //pos.z += 100.0f;
+    //pos.y += 100.0f;
+
+    view = glm::lookAt(pos, pos + direction, up);
     proj = glm::perspective(fov, aspect, znear, zfar);
 
 

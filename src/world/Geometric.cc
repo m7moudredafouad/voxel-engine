@@ -3,10 +3,10 @@
 /***Square******************************/
 Square::Square(const Model& obj)
     : points{ 
-                {{0 , 1, 1}, obj.color()},
-                {{1 , 1, 1}, obj.color()},
-                {{0 , 0, 1}, obj.color()},
-                {{1 , 0, 1}, obj.color()}
+                {{0 , 1, 0}, obj.color()},
+                {{1 , 1, 0}, obj.color()},
+                {{0 , 0, 0}, obj.color()},
+                {{1 , 0, 0}, obj.color()}
             }
 {
     // Size
@@ -35,23 +35,23 @@ void Square::translate(Model& obj) {
 
 Cube::Cube(const Model& obj)
     : points{
-            {{0 , 0, -2}, obj.color()},    // 0
-            {{1 , 0, -2}, obj.color()},    // 1
-            {{1 , 1, -2}, obj.color()},    // 2
-            {{0 , 1, -2}, obj.color()},    // 3
+            {{-1 , -1, -1}, obj.color()},     // 0
+            {{1 , -1, -1}, obj.color()},      // 1
+            {{1 , 1, -1}, obj.color()},       // 2
+            {{-1 , 1, -1}, obj.color()},      // 3
 
-            {{0 , 0, -1}, obj.color()},    // 4
-            {{1 , 0, -1}, obj.color()},    // 5
-            {{1 , 1, -1}, obj.color()},    // 6
-            {{0 , 1, -1}, obj.color()},    // 7
+            {{-1 , -1, 1}, obj.color()},      // 4
+            {{1 , -1, 1}, obj.color()},       // 5
+            {{1 , 1, 1}, obj.color()},        // 6
+            {{-1 , 1, 1}, obj.color()},       // 7
 }
 {
     // Size
     glm::vec3 obj_size = obj.get_size();
     for (auto& point : points) {
-        point.coord.x *= obj_size.x;
-        point.coord.y *= obj_size.y;
-        point.coord.z *= obj_size.z;
+        point.coord.x *= obj_size.x * 0.5f;
+        point.coord.y *= obj_size.y * 0.5f;
+        point.coord.z *= obj_size.z * 0.5f;
     }
 
     // Translate

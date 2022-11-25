@@ -4,7 +4,7 @@
 #include <vector>
 #include <models/Model.h>
 #include <gfx/Resource.h>
-#include "../gfx/Buffers.h"
+#include <gfx/Buffers.h>
 #include <world/world_utils.h>
 
 
@@ -23,7 +23,7 @@ private:
     std::vector<vertex_t> m_vertex;
     std::vector<index_t> m_index;
 
-    uint32_t m_shape[3], m_stride[3];
+    Shape m_shape;
 
     ShaderEnum m_shader;
     size_t m_size, m_idx_per_vertex;
@@ -33,8 +33,10 @@ private:
     void load();
 public:
     /***Constructors**********************************/
-    Chunkmesh(size_t max_size);
-    Chunkmesh(std::shared_ptr<VertexBuffer> vb, std::shared_ptr<VertexBuffer> ib);
+    Chunkmesh(size_t max_size, const std::vector<int>& shape);
+    Chunkmesh( std::shared_ptr<VertexBuffer> vb,
+               std::shared_ptr<VertexBuffer> ib,
+               const std::vector<int>& shape);
     ~Chunkmesh() {}
 
     /***Drawer****************************************/
@@ -45,47 +47,38 @@ public:
     size_t size() const { return m_size; }
     Model& object(size_t i) {
         ASSERT(i <= m_size, "MESH::index is out of range");
+        m_updated_buffers = true;
         return m_object[i];
     }
 
-    int32_t block_index(const std::vector<int>& idx_3d) const;
-
-
     /***Setters***************************************/
     void shader(ShaderEnum shader) { this->m_shader = shader; }
-    void shape(glm::vec3 shape) { // TODO: make it variable size shape
-        m_shape[0] = shape.x;
-        m_shape[1] = shape.y;
-        m_shape[2] = shape.z;
-
-        m_stride[2] = 1;
-        m_stride[1] = shape.z;
-        m_stride[0] = shape.z * shape.y;
-    }
     void push(Model obj);
     void remove(size_t i);
 
     /***Behavior**************************************/
-    void translate(size_t i);
-    bool check_collision(Model player, eCollisionDir dir);
+    bool check_collision(Model player, eCollisionDir y_dir);
+
 };
 
 /***Constructors**********************************/
 template <class vertex_t, class index_t>
-Chunkmesh<vertex_t, index_t>::Chunkmesh(size_t max_size) :
+Chunkmesh<vertex_t, index_t>::Chunkmesh(size_t max_size, const std::vector<int>& shape) :
     Chunkmesh(
         std::shared_ptr<VertexBuffer>(new VertexBuffer(GL_ARRAY_BUFFER, sizeof(vertex_t) * max_size)),
-        std::shared_ptr<VertexBuffer>(new VertexBuffer(GL_ELEMENT_ARRAY_BUFFER, sizeof(index_t) * max_size))
+        std::shared_ptr<VertexBuffer>(new VertexBuffer(GL_ELEMENT_ARRAY_BUFFER, sizeof(index_t) * max_size)),
+        shape
     ) {   }
 
 template <class vertex_t, class index_t>
-Chunkmesh<vertex_t, index_t>::Chunkmesh(std::shared_ptr<VertexBuffer> vb,
-    std::shared_ptr<VertexBuffer> ib) :
+Chunkmesh<vertex_t, index_t>::Chunkmesh(
+    std::shared_ptr<VertexBuffer> vb,
+    std::shared_ptr<VertexBuffer> ib,
+    const std::vector<int>& shape) :
     m_vao(std::shared_ptr<VertexArray>(new VertexArray)),
     m_vbo(vb),
     m_ibo(ib),
-    m_shape{ 0 },
-    m_stride{ 0 },
+    m_shape(shape),
     m_size(0), m_idx_per_vertex(sizeof(index_t) / sizeof(uint32_t)), m_updated_buffers(false) {   }
 
 
@@ -142,39 +135,22 @@ void Chunkmesh<vertex_t, index_t>::layout(std::vector<BufferLayout> layouts) con
 }
 
 /***Getters***************************************/
-template <class vertex_t, class index_t>
-int32_t Chunkmesh<vertex_t, index_t>::block_index(const std::vector<int> & idx_3d) const {
-    int32_t idx = 0, max_size = 1;
-
-    for (int i = 2; i >= 0; i--) {
-        idx += m_stride[i] * idx_3d[i];
-        max_size *= m_shape[i];
-    }
-
-    ASSERT(idx < max_size && idx >= 0, "MESH::index is out of range");
-
-    return idx;
-}
 
 /***Setters***************************************/
 template <class vertex_t, class index_t>
 void Chunkmesh<vertex_t, index_t>::push(Model obj) {
     m_object.push_back(obj);
-    //m_vertex.push_back(vertex_t(obj));
-    m_size++;
-    /*index_t i = m_size++;
-    m_index.push_back(i);*/
-    m_updated_buffers = true;
+    if (obj.isActive()) {
+        m_size++;
+        m_updated_buffers = true;
+    }
 };
 
 template <class vertex_t, class index_t>
 void Chunkmesh<vertex_t, index_t>::remove(size_t i) {
     ASSERT(i <= m_size, "MESH::index is out of range");
-    m_size--;
-
     m_object.erase(m_object.begin() + i);
-    /*m_vertex.erase(m_vertex.begin() + i);
-    m_index.pop_back();*/
+    m_size--;
     m_updated_buffers = true;
 }
 
@@ -182,10 +158,12 @@ template <class vertex_t, class index_t>
 void Chunkmesh<vertex_t, index_t>::load() {
     m_vertex.clear();
     m_index.clear();
+    
+    int idx = 0;
     for (int i = 0; i < m_object.size(); i++) {
         if (m_object[i].isActive()) {
             m_vertex.push_back(vertex_t(m_object[i]));
-            m_index.push_back(i);
+            m_index.push_back(idx++);
         }
     }
 
@@ -195,73 +173,40 @@ void Chunkmesh<vertex_t, index_t>::load() {
 
 /***Behavior**************************************/
 template <class vertex_t, class index_t>
-void Chunkmesh<vertex_t, index_t>::translate(size_t i) {
-    ASSERT(i <= m_size, "MESH::index is out of range");
-    //m_vertex[i].translate(m_object[i]);
-    m_object[i].translate();
-    m_updated_buffers = true;
-}
-
-
-template <class vertex_t, class index_t>
-bool Chunkmesh<vertex_t, index_t>::check_collision(Model player, eCollisionDir dir) {
+bool Chunkmesh<vertex_t, index_t>::check_collision(Model player, eCollisionDir y_dir) {
     if (!player.isActive()) return false;
+    
+    static int directions[][2] = {
+        {0, 0},
+        {0, 1},
+        {0, -1},
+        {1, 0},
+        {1, 1},
+        {1, -1},
+        {-1, 0},
+        {-1, 1},
+        {-1, -1}
+    };
 
-    glm::vec3 player_pos = player.get_position(); // Position of the player in the world
-    glm::vec3 player_size = player.get_size();
+    player.translate();
 
     // Poition of the player in the Array
     // TODO: Need fix here, Shouldn't depend on player size
-    std::vector<int>idx_3d{ 
-                        (int) std::round(player_pos.x / player_size.x),
-                        (int) std::round(player_pos.y / player_size.y),
-                        (int) std::round(player_pos.z / player_size.z)
-                     };
+    glm::vec3 pos = player.get_position();
+    glm::vec3 size = player.get_size();
 
-    player.translate();
-    int idx = block_index(idx_3d); // check collision in the same location of the player
+    int y = std::floor(pos.y / size.y) + static_cast<int>(y_dir);
 
-    if (player.collides(m_object[idx])) return true;
+    for (const auto & dir : directions) {
+        int idx = m_shape.at({  // check collision in the same location of the player
+                int(std::round((pos.x/size.x) + (dir[0] * 0.5f))),
+                y,
+                int(std::round((pos.z/size.z) + (dir[1] * 0.5f))),
+            });
 
-    //if (dir & eCollisionDir::LEFT) {
-    //    idx = block_index(x - 1, y);
-    //    if (player.collides(m_object[idx])) return true;
-    //}
+        if (idx > -1 && player.collides(m_object[idx])) return true;
 
-    //if (dir & eCollisionDir::RIGHT) {
-    //    idx = block_index(x + 1, y);
-    //    if (player.collides(m_object[idx])) return true;
-    //}
-
-    //if (dir & eCollisionDir::TOP) {
-    //    idx = block_index(x, y + 1);
-    //    if (player.collides(m_object[idx])) return true;
-    //}
-
-    if (dir & eCollisionDir::BOTTOM) {
-        idx = block_index({ idx_3d[0], idx_3d[1] - 1, idx_3d[2]});
-        if (player.collides(m_object[idx])) return true;
     }
-
-    if (dir & eCollisionDir::BOTTOM_LEFT) {
-        idx = block_index({ idx_3d[0] - 1, idx_3d[1] - 1, idx_3d[2] });
-        if (player.collides(m_object[idx])) return true;
-    }
-
-    //if (dir & eCollisionDir::TOP_LEFT) {
-    //    idx = getBlockIndex(x - 1, y + 1);
-    //    if (player.collides(block->object(idx))) return true;
-    //}
-
-    /*if (dir & eCollisionDir::BOTTOM_RIGHT) {
-        idx = block_index(x + 1, y - 1);
-        if (player.collides(block->object(idx))) return true;
-    }*/
-
-    //if (dir & eCollisionDir::TOP_RIGHT) {
-    //    idx = block_index(x + 1, y + 1);
-    //    if (player.collides(block->object(idx))) return true;
-    //}
 
     return false;
 }

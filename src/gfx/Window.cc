@@ -47,6 +47,8 @@ void Window::create(const char * name, uint32_t width, uint32_t height) {
 	glfwSetKeyCallback(m_window, _handle_key);
 	glfwSetCursorPosCallback(m_window, _handle_mouse_pos);
 
+	glfwSwapInterval(1);
+
 }
 
 void Window::loop(void (*init)(void), void (*render)(void), void (*destroy)(void)) {
@@ -63,15 +65,12 @@ void Window::loop(void (*init)(void), void (*render)(void), void (*destroy)(void
 	// GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 	
     while(!glfwWindowShouldClose(m_window)){
-		float current_time = glfwGetTime();
-		Window::m_delta_time = current_time - Window::m_last_time;
-
-		if (m_delta_time < 0.002f) continue;
-
-		Window::m_last_time = current_time;
-
 		GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
 		GLCall(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+		float current_time = glfwGetTime();
+		Window::m_delta_time = current_time - Window::m_last_time;
+		Window::m_last_time = current_time;
 
 		render();
 		Window::m_window_resized = false;
