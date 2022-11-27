@@ -8,16 +8,16 @@ class Model {
     glm::vec3   m_size /*width, height, depth*/;
     float       m_angle, m_jump_height;
     bool        m_is_active;
-    glm::vec4   m_color;
+    sColor   m_color;
 public:
 
-    Model(float x, float y, float z, float size, glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f });
-    Model(float x, float y, float z, float size, bool isActive, glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f });
-    Model(float x, float y, float z, float width, float height, float depth, bool isActive, glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f });
+    Model(float x, float y, float z, float size, sColor color = { 0xFF, 0xFF, 0xFF, 0xFF });
+    Model(float x, float y, float z, float size, bool isActive, sColor color = { 0xFF, 0xFF, 0xFF, 0xFF });
+    Model(float x, float y, float z, float width, float height, float depth, bool isActive, sColor color = { 0xFF, 0xFF, 0xFF, 0xFF });
 
     /***Getters***************************************/
     bool isActive() const { return m_is_active; }
-    const glm::vec4 & color() const { return m_color; }
+    const sColor & color() const { return m_color; }
     glm::vec3 get_size() const { return m_size; }
     glm::vec3 get_position() const { return m_pos; }
     std::vector<int> get_voxel_position() const { 

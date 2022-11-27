@@ -4,13 +4,13 @@ float max_player_x = BLOCK_WIDTH * GAME_WIDTH - BLOCK_WIDTH;
 float max_player_y = BLOCK_HEIGHT * GAME_HEIGHT - BLOCK_HEIGHT;
 
 /***Model*************************************/
-Model::Model(float x, float y, float z, float size, glm::vec4 color)
+Model::Model(float x, float y, float z, float size, sColor color)
     : Model(x, y, z, size, size, size, true, color) {}
 
-Model::Model(float x, float y, float z, float size, bool isActive, glm::vec4 color)
+Model::Model(float x, float y, float z, float size, bool isActive, sColor color)
     : Model(x, y, z, size, size, size, isActive, color) {}
 
-Model::Model(float x, float y, float z, float width, float height, float depth, bool isActive, glm::vec4 color)
+Model::Model(float x, float y, float z, float width, float height, float depth, bool isActive, sColor color)
     : m_pos(x, y, z), m_delta(0, 0, 0), m_size(width, height, depth), m_angle(0), m_jump_height(0), m_is_active(isActive), m_color(color) {}
 
 

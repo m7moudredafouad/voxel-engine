@@ -25,10 +25,10 @@ Square::Square(const Model& obj)
     }
 }
 
-void Square::translate(Model& obj) {
-    obj.translate();
-    *this = Square(obj);
-}
+//void Square::translate(Model& obj) {
+//    obj.translate();
+//    *this = Square(obj);
+//}
 
 
 /***Cube********************************/
@@ -63,7 +63,7 @@ Cube::Cube(const Model& obj)
     }
 }
 
-void Cube::translate(Model& obj) {
-    obj.translate();
-    *this = Cube(obj);
-}
+//void Cube::translate(Model& obj) {
+//    obj.translate();
+//    *this = Cube(obj);
+//}
