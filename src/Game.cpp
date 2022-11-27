@@ -2,10 +2,10 @@
 
 using Cubes = Chunkmesh<Cube, sCubeIndex>;
 
-static sColor player_color(52, 255, 128, 255);
+static sColor player_color(255, 77, 77, 0);
 //static sColor player_color(0, 0, 0, 0);
 static sColor sky_color(154, 154, 255, 255);
-static sColor enemy_color(255, 77, 77, 255);
+static sColor enemy_color(52, 255, 128, 255);
 
 static Window* window = static_cast<Window*>(&Window::getInstance());
 static std::shared_ptr<Cubes> block_mesh, player_mesh;
@@ -85,7 +85,8 @@ void Game::startup() {
     block_mesh->layout({
         {3, GL_FLOAT, true},
         {4, GL_FLOAT, true},
-        });
+        {1, GL_UNSIGNED_INT, true},
+    });
 
     block_mesh->shader(ShaderEnum::BASIC);
 
@@ -93,7 +94,8 @@ void Game::startup() {
     player_mesh->layout({
         {3, GL_FLOAT, true},
         {4, GL_FLOAT, true},
-        });
+        {1, GL_UNSIGNED_INT, true},
+    });
 
     player_mesh->shader(ShaderEnum::BASIC);
 

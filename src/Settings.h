@@ -1,7 +1,5 @@
 #pragma once
 
-#include "world/geometric_utils.h"
-
 #define GAME_WIDTH		(16)
 //#define GAME_WIDTH		(1)
 #define GAME_HEIGHT		(2)
