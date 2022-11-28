@@ -85,7 +85,7 @@ void Game::startup() {
     block_mesh->layout({
         {3, GL_FLOAT, true},
         {4, GL_FLOAT, true},
-        {1, GL_UNSIGNED_INT, true},
+        {1, GL_FLOAT, true},
     });
 
     block_mesh->shader(ShaderEnum::BASIC);
@@ -94,7 +94,7 @@ void Game::startup() {
     player_mesh->layout({
         {3, GL_FLOAT, true},
         {4, GL_FLOAT, true},
-        {1, GL_UNSIGNED_INT, true},
+        {1, GL_FLOAT, true},
     });
 
     player_mesh->shader(ShaderEnum::BASIC);
@@ -110,7 +110,8 @@ void Game::Init() {
     for (int x = 0; x < GAME_WIDTH; x++) {
         for (int y = 0; y < GAME_HEIGHT; y++) {
             for (int z = 0; z < GAME_DEPTH; z++) {
-                bool isActive = (y == 0) || (z == x);
+                //bool isActive = (y == 0) || (x == 0) || (x == GAME_WIDTH - 1) || (z == 0) || (z == GAME_DEPTH - 1);
+                bool isActive = (y == 0) || (x % 2 && z % 2);
                 //isActive = true;
                 if (y % 2 == 0) {
                     block_mesh->push(Model(x * BLOCK_SIZE, y * BLOCK_SIZE, z * BLOCK_SIZE, BLOCK_SIZE, isActive, enemy_color));

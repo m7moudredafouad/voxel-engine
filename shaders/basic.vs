@@ -2,16 +2,16 @@
 
 layout (location = 0) in vec3 pos;
 layout (location = 1) in vec4 color;
-layout (location = 2) in uint face;
+layout (location = 2) in float face;
 
-const uint UP = 0U;
-const uint DOWN = 1U;
-const uint LEFT = 2U;
-const uint RIGHT = 3U;
-const uint FRONT = 4U;
-const uint BACK = 5U;
+const uint UP = 0;
+const uint DOWN = 1;
+const uint LEFT = 2;
+const uint RIGHT = 3;
+const uint FRONT = 4;
+const uint BACK = 5;
 
-const vec4 sunlight_color = vec4(0.3, 0.3, 0.3, 0.5);
+const vec4 sunlight_color = vec4(0.94, 0.85, 0.64, 0.5);
 
 uniform mat4 projection, view, model;
 
@@ -33,13 +33,13 @@ void main() {
     if (face == UP) {
         light *= 1.0;
     } else if (face == LEFT || face == RIGHT) {
-        light *= 0.8;
+        light *= 0.2;
     } else if (face == FRONT || face == BACK) {
-        light *= 0.6;
-    } else {
         light *= 0.5;
+    } else {
+        light *= 0.4;
     }
 
-    v_Color = vec4(light, 1.0);
+    v_Color = vec4(light, color.w / 255.0);
     v_Color = vec4(pow(v_Color.rgb, vec3(1.0 / 2.2)), v_Color.a);
 }

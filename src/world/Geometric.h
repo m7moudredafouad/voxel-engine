@@ -2,27 +2,27 @@
 #include "world_utils.h"
 #include <models/model_utils.h>
 
-#define VERTEX_PER_CUBE   (8)
-//#define VERTEX_PER_CUBE   (24)
+//#define VERTEX_PER_CUBE   (8)
+#define VERTEX_PER_CUBE   (24)
 //#define INDEX_PER_SQUARE   (6)
 #define INDEX_PER_CUBE   (36)
 
 /***Faces*******************************/\
 enum eFace {
     UP = 0,
-    DOWN,
-    LEFT,
-    RIGHT,
-    FRONT,
-    BACK
+    DOWN = 1,
+    LEFT = 2,
+    RIGHT = 3,
+    FRONT = 4,
+    BACK = 5
 };
 
 /***Vertex******************************/
 struct sVertex {
     glm::vec3 coord;
     sColor color;
-    uint32_t face;
-    sVertex(glm::vec3 coord = {0.0f, 0.0f, 0.0f}, sColor color = {0,0,0,0}, uint32_t face = 0) : coord(coord), color(color), face(face) {}
+    float face;
+    sVertex(glm::vec3 coord = {0.0f, 0.0f, 0.0f}, sColor color = {0,0,0,0}, float face = 0.0) : coord(coord), color(color), face(face) {}
 };
 
 /***Geometric**************************/
