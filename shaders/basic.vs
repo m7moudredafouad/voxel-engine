@@ -11,7 +11,8 @@ const uint RIGHT = 3;
 const uint FRONT = 4;
 const uint BACK = 5;
 
-const vec4 sunlight_color = vec4(0.94, 0.85, 0.64, 0.5);
+//const vec4 sunlight_color = vec4(0.94, 0.85, 0.64, 0.5);
+const vec4 sunlight_color = vec4(1, 1, 1, 1);
 
 uniform mat4 projection, view, model;
 
@@ -22,24 +23,28 @@ void main() {
 
     vec3 light = vec3(
         color.x / 255.0, color.y / 255.0, color.z / 255.0
-    ) * color.w / 255.0;
+    );
 
-    light = max(vec3(sunlight_color.rgb), light);
+    //vec3 light = vec3(
+    //    color.x / 255.0, color.y / 255.0, color.z / 255.0
+    //) * color.w / 255.0;
 
-    const float min_light = 0.0025;
-    light *= vec3(1.0 - min_light);
-    light += vec3(min_light);
+    //light = max(vec3(sunlight_color.rgb), light);
+
+    //const float min_light = 0.0025;
+    //light *= vec3(1.0 - min_light);
+    //light += vec3(min_light);
 
     if (face == UP) {
         light *= 1.0;
     } else if (face == LEFT || face == RIGHT) {
-        light *= 0.2;
+        light *= 0.8;
     } else if (face == FRONT || face == BACK) {
-        light *= 0.5;
+        light *= 0.6;
     } else {
         light *= 0.4;
     }
 
     v_Color = vec4(light, color.w / 255.0);
-    v_Color = vec4(pow(v_Color.rgb, vec3(1.0 / 2.2)), v_Color.a);
+    //v_Color = vec4(pow(v_Color.rgb, vec3(1.0 / 2.2)), v_Color.a);
 }

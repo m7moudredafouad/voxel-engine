@@ -1,10 +1,8 @@
 #pragma once
 
-#define GAME_WIDTH		(16)
-//#define GAME_WIDTH		(1)
-#define GAME_HEIGHT		(2)
-//#define GAME_HEIGHT		(16)
-#define GAME_DEPTH		(16)
+#define GAME_WIDTH		(64)
+#define GAME_HEIGHT		(16)
+#define GAME_DEPTH		(64)
 
 #define BLOCK_SIZE		(16)
 #define BLOCK_WIDTH		(16)

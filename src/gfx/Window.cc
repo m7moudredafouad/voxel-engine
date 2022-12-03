@@ -46,6 +46,8 @@ void Window::create(const char * name, uint32_t width, uint32_t height) {
 	glfwSetFramebufferSizeCallback(m_window, _handle_resize);
 	glfwSetKeyCallback(m_window, _handle_key);
 	glfwSetCursorPosCallback(m_window, _handle_mouse_pos);
+	glfwSetMouseButtonCallback(m_window, _handle_mouse_key);
+
 
 	glfwSwapInterval(1);
 
@@ -107,6 +109,21 @@ void Window::_handle_key(GLFWwindow* window, int key, int scancode, int action, 
 		break;
 	}
 }
+
+void Window::_handle_mouse_key(GLFWwindow* handle, int button, int action, int mods) {
+	switch (action) {
+	case GLFW_PRESS:
+		Window::keyboard.keys[button] = { m_delta_time, true };
+		break;
+	case GLFW_RELEASE:
+		Window::keyboard.keys[button] = { m_delta_time, false };
+		break;
+	default:
+		Window::keyboard.keys[button] = { m_delta_time, Window::keyboard.keys[button].down };
+		break;
+	}
+}
+
 
 void Window::_handle_mouse_pos(GLFWwindow* handle, double x, double y) {
 	mouse.delta_time = m_delta_time;

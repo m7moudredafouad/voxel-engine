@@ -32,6 +32,9 @@ public:
 
     /***Setters***************************************/
     void set_position(const glm::vec3& pos) { m_pos = pos; }
+    void set_delta(const glm::vec3& delta) { m_delta = delta; }
+    void activate() { m_is_active = true; }
+    void deactivate() { m_is_active = false; }
 
     /***Behavior**************************************/
     void jump() { m_jump_height = JUMP_HEIGHT; }

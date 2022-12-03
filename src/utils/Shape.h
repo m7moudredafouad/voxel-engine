@@ -40,4 +40,7 @@ public:
 
         return (idx < m_max_size) ? idx : -1;
     }
+
+    int32_t get_max_size() const { return m_max_size; }
+
 };

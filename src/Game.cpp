@@ -3,9 +3,12 @@
 using Cubes = Chunkmesh<Cube, sCubeIndex>;
 
 static sColor player_color(255, 77, 77, 0);
-//static sColor player_color(0, 0, 0, 0);
-static sColor sky_color(154, 154, 255, 255);
-static sColor enemy_color(52, 255, 128, 255);
+static sColor colors[] = {
+    sColor(154, 154, 154, 255), // brick_color
+    sColor(86, 125, 70, 255),    // grass_color
+    sColor(200, 50, 50, 255),    // red_color
+    sColor(255, 215, 0, 255),    // gold_color
+};
 
 static Window* window = static_cast<Window*>(&Window::getInstance());
 static std::shared_ptr<Cubes> block_mesh, player_mesh;
@@ -70,6 +73,16 @@ void Game::_handle_key() {
     }
 
     player.set_position(new_pos);
+
+    if (keyboard[GLFW_MOUSE_BUTTON_LEFT].down) {
+        auto b = Model(new_pos.x, new_pos.y, new_pos.z, 1, colors[3]);
+        auto dir = Camera::Direction();
+        dir *= 5;
+        b.set_delta(dir);
+        player_mesh->push(b);
+
+        keyboard[GLFW_MOUSE_BUTTON_LEFT].down = false;
+    }
 }
 
 void Game::_handle_mouse() {
@@ -90,7 +103,7 @@ void Game::startup() {
 
     block_mesh->shader(ShaderEnum::BASIC);
 
-    player_mesh = std::shared_ptr<Cubes>(new Cubes(1, {1}));
+    player_mesh = std::shared_ptr<Cubes>(new Cubes(2, {2}));
     player_mesh->layout({
         {3, GL_FLOAT, true},
         {4, GL_FLOAT, true},
@@ -108,23 +121,17 @@ void Game::shutdown() {
 void Game::Init() {
     /***Blocks****************************************/
     for (int x = 0; x < GAME_WIDTH; x++) {
+        srand(x);
         for (int y = 0; y < GAME_HEIGHT; y++) {
             for (int z = 0; z < GAME_DEPTH; z++) {
-                //bool isActive = (y == 0) || (x == 0) || (x == GAME_WIDTH - 1) || (z == 0) || (z == GAME_DEPTH - 1);
-                bool isActive = (y == 0) || (x % 2 && z % 2);
-                //isActive = true;
-                if (y % 2 == 0) {
-                    block_mesh->push(Model(x * BLOCK_SIZE, y * BLOCK_SIZE, z * BLOCK_SIZE, BLOCK_SIZE, isActive, enemy_color));
-                }
-                else {
-                    block_mesh->push(Model(x * BLOCK_SIZE, y * BLOCK_SIZE, z * BLOCK_SIZE, BLOCK_SIZE, isActive, sky_color));
-
-                }
+                bool isActive = std::round(float(rand()) / RAND_MAX);
+                sColor & color = colors[rand() % 3];
+                block_mesh->push(Model(x * BLOCK_SIZE, y * BLOCK_SIZE, z * BLOCK_SIZE, BLOCK_SIZE, isActive, color));
             }
         }
     }
     /***Player****************************************/
-    player_mesh->push(Model(BLOCK_SIZE, 10 *BLOCK_SIZE, BLOCK_SIZE*1.1, BLOCK_SIZE, player_color));
+    player_mesh->push(Model(BLOCK_SIZE, (GAME_HEIGHT + 10) *BLOCK_SIZE, BLOCK_SIZE*1.1, BLOCK_SIZE, player_color));
 }
 
 void Game::Update() {
@@ -134,8 +141,15 @@ void Game::Update() {
     player.handle_jump(block_mesh->check_collision(player, TOP), 
                         block_mesh->check_collision(player, BOTTOM));
 
-    bool x = block_mesh->check_collision(player, BOTTOM);
-
+    // Bullet handler
+    if (player_mesh->exist(1)) {
+        auto& bullet = player_mesh->object(1);
+        bullet.translate();
+        int in_bound = block_mesh->in_bound(bullet);
+        if (!in_bound || in_bound && block_mesh->deactivate_if_contains(bullet)) {
+            player_mesh->remove(1);
+        }
+    }
 
     /***Events****************************************/
     _handle_mouse();

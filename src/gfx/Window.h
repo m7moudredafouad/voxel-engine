@@ -45,6 +45,7 @@ private:    // Static Private Functions
     static void _handle_resize(GLFWwindow* window, int width, int height);
     static void _handle_key(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void _handle_mouse_pos(GLFWwindow* handle, double x, double y);
+    static void _handle_mouse_key(GLFWwindow* handle, int button, int action, int mods);
 
 private:    // Private Functions
     Window();

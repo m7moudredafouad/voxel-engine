@@ -45,20 +45,39 @@ public:
 
     /***Getters***************************************/
     size_t size() const { return m_size; }
+    bool exist(size_t i) {
+        return i < m_size;
+    }
     Model& object(size_t i) {
-        ASSERT(i <= m_size, "MESH::index is out of range");
+        ASSERT(i < m_size, "MESH::index is out of range");
         m_updated_buffers = true;
         return m_object[i];
+    }
+
+    int in_bound(const Model& player) {
+        glm::vec3 pos = player.get_position();
+        int idx = m_shape.at({
+                int(std::floor(pos.x / BLOCK_WIDTH)),
+                int(std::floor(pos.y / BLOCK_HEIGHT)),
+                int(std::floor(pos.z / BLOCK_DEPTH)),
+            });
+        return idx != -1;
     }
 
     /***Setters***************************************/
     void shader(ShaderEnum shader) { this->m_shader = shader; }
     void push(Model obj);
     void remove(size_t i);
+    void deactivate(size_t i) {
+        if (i >= m_shape.get_max_size()) return;
+
+        m_object[i].deactivate();
+        m_updated_buffers = true;
+    }
 
     /***Behavior**************************************/
     bool check_collision(Model player, eCollisionDir y_dir);
-
+    bool deactivate_if_contains(Model model);
 };
 
 /***Constructors**********************************/
@@ -139,6 +158,7 @@ void Chunkmesh<vertex_t, index_t>::layout(std::vector<BufferLayout> layouts) con
 /***Setters***************************************/
 template <class vertex_t, class index_t>
 void Chunkmesh<vertex_t, index_t>::push(Model obj) {
+    if (m_object.size() >= m_shape.get_max_size()) return;
     m_object.push_back(obj);
     if (obj.isActive()) {
         m_size++;
@@ -195,17 +215,39 @@ bool Chunkmesh<vertex_t, index_t>::check_collision(Model player, eCollisionDir y
     glm::vec3 pos = player.get_position();
     glm::vec3 size = player.get_size();
 
-    int y = std::floor(pos.y / size.y) + static_cast<int>(y_dir);
+    // TODO: The whole chunk should have the same dimensions
+    // Do I need to add this as a variable ?
+    int y = std::floor(pos.y / BLOCK_HEIGHT) + static_cast<int>(y_dir);
 
     for (const auto & dir : directions) {
         int idx = m_shape.at({  // check collision in the same location of the player
-                int(std::round((pos.x/size.x) + (dir[0] * 0.5f))),
+                int(std::round((pos.x/ BLOCK_WIDTH) + (dir[0] * 0.5f))),
                 y,
-                int(std::round((pos.z/size.z) + (dir[1] * 0.5f))),
+                int(std::round((pos.z/ BLOCK_DEPTH) + (dir[1] * 0.5f))),
             });
 
         if (idx > -1 && player.collides(m_object[idx])) return true;
 
+    }
+
+    return false;
+}
+
+template <class vertex_t, class index_t>
+bool Chunkmesh<vertex_t, index_t>::deactivate_if_contains(Model model) {
+    if (!model.isActive()) return false;
+
+    glm::vec3 pos = model.get_position();
+    
+    int idx = m_shape.at({  // check collision in the same location of the player
+            int(std::round(pos.x / BLOCK_WIDTH)),
+            int(std::round(pos.y / BLOCK_HEIGHT)),
+            int(std::round(pos.z / BLOCK_DEPTH)),
+    });
+
+    if (idx > -1 && m_object[idx].isActive()) {
+        this->deactivate(idx);
+        return true;
     }
 
     return false;

@@ -63,9 +63,10 @@ void Model::translate() {
 bool Model::collides(const Model& other) {
     //return other.m_is_active; // TEST:: Should be removed
     if (other.m_is_active == false) return false;
-    float this_width = -0.2f + m_size.x / 2, other_width = -0.2f + other.m_size.x / 2;
+    float delta = -1.0f;
+    float this_width = delta + m_size.x / 2, other_width = delta + other.m_size.x / 2;
     float this_height =  m_size.y / 2, other_height = other.m_size.y / 2;
-    float this_depth = -0.2f + m_size.z / 2, other_depth = -0.2f + other.m_size.z / 2;
+    float this_depth = delta + m_size.z / 2, other_depth = delta + other.m_size.z / 2;
 
     bool col_x = ((m_pos.x + this_width) > (other.m_pos.x - other_width))
         && ((m_pos.x + this_width) < (other.m_pos.x + other_width));
