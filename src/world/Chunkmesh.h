@@ -12,7 +12,7 @@ struct BufferLayout {
     uint32_t length, type, normalize;
 };
 
-
+// ! Layout is x, z, y
 template <class vertex_t, class index_t>
 class Chunkmesh {
 private:
@@ -22,10 +22,10 @@ private:
     std::vector<Model> m_object;
     std::vector<vertex_t> m_vertex;
     std::vector<index_t> m_index;
+    ShaderEnum m_shader;
 
     Shape m_shape;
 
-    ShaderEnum m_shader;
     size_t m_size, m_idx_per_vertex;
     bool m_updated_buffers;
 
@@ -97,6 +97,7 @@ Chunkmesh<vertex_t, index_t>::Chunkmesh(
     m_vao(std::shared_ptr<VertexArray>(new VertexArray)),
     m_vbo(vb),
     m_ibo(ib),
+    m_shader(ShaderEnum::NONE),
     m_shape(shape),
     m_size(0), m_idx_per_vertex(sizeof(index_t) / sizeof(uint32_t)), m_updated_buffers(false) {   }
 
@@ -222,8 +223,8 @@ bool Chunkmesh<vertex_t, index_t>::check_collision(Model player, eCollisionDir y
     for (const auto & dir : directions) {
         int idx = m_shape.at({  // check collision in the same location of the player
                 int(std::round((pos.x/ BLOCK_WIDTH) + (dir[0] * 0.5f))),
-                y,
                 int(std::round((pos.z/ BLOCK_DEPTH) + (dir[1] * 0.5f))),
+                y
             });
 
         if (idx > -1 && player.collides(m_object[idx])) return true;
@@ -241,8 +242,8 @@ bool Chunkmesh<vertex_t, index_t>::deactivate_if_contains(Model model) {
     
     int idx = m_shape.at({  // check collision in the same location of the player
             int(std::round(pos.x / BLOCK_WIDTH)),
-            int(std::round(pos.y / BLOCK_HEIGHT)),
             int(std::round(pos.z / BLOCK_DEPTH)),
+            int(std::round(pos.y / BLOCK_HEIGHT))
     });
 
     if (idx > -1 && m_object[idx].isActive()) {

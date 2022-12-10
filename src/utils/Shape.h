@@ -21,10 +21,6 @@ public:
         }
 
         m_max_size = m_shape[0] * m_stride[0];
-        
-        /*m_stride[0] = shape.y * shape.z;
-        m_stride[1] = shape.z;
-        m_stride[2] = 1;*/
     }
 
     int32_t at(const std::vector<int>& idx_in_dims) const {
