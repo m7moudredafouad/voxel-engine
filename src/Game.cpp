@@ -78,7 +78,7 @@ void Game::_handle_key() {
     if (keyboard[GLFW_MOUSE_BUTTON_LEFT].down) {
         auto b = Model(new_pos.x, new_pos.y, new_pos.z, 1, colors[3]);
         auto dir = Camera::Direction();
-        dir *= 10;
+        dir *= 15;
         b.set_delta(dir);
         player_mesh->push(b);
 
@@ -136,6 +136,7 @@ void Game::Init() {
     }
     /***Player****************************************/
     player_mesh->push(Model(BLOCK_SIZE, (GAME_HEIGHT + 10) *BLOCK_SIZE, BLOCK_SIZE*1.1, BLOCK_SIZE, player_color));
+
 }
 
 void Game::Update() {

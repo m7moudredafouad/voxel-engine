@@ -58,8 +58,8 @@ public:
         glm::vec3 pos = player.get_position();
         int idx = m_shape.at({
                 int(std::floor(pos.x / BLOCK_WIDTH)),
-                int(std::floor(pos.y / BLOCK_HEIGHT)),
                 int(std::floor(pos.z / BLOCK_DEPTH)),
+                int(std::floor(pos.y / BLOCK_HEIGHT)),
             });
         return idx != -1;
     }
@@ -177,15 +177,46 @@ void Chunkmesh<vertex_t, index_t>::remove(size_t i) {
 
 template <class vertex_t, class index_t>
 void Chunkmesh<vertex_t, index_t>::load() {
+    
+    static int directions[][3] = {
+        {1, 0, 0},
+        {-1, 0, 0},
+        {0, 1, 0},
+        {0, -1, 0},
+        {0, 0, 1},
+        {0, 0, -1},
+    };
+
     m_vertex.clear();
     m_index.clear();
+
+
     
     int idx = 0;
     for (int i = 0; i < m_object.size(); i++) {
-        if (m_object[i].isActive()) {
-            m_vertex.push_back(vertex_t(m_object[i]));
-            m_index.push_back(idx++);
+        if (!m_object[i].isActive()) continue;
+
+        auto idx_vec = m_shape.at(i);
+        bool are_surrounding_active = true;
+        for (auto dir : directions) {
+            for(int x = 0; x < idx_vec.size(); x++) idx_vec[x] += dir[x];
+
+            auto tmp_idx = m_shape.at(idx_vec);
+            if (tmp_idx == -1 || tmp_idx >= m_object.size()) {
+                are_surrounding_active = false;
+                break;
+            }
+
+            are_surrounding_active &= m_object[tmp_idx].isActive();
+
+            if (!are_surrounding_active) break;
+            for (int x = 0; x < idx_vec.size(); x++) idx_vec[x] -= dir[x];
         }
+
+        if (are_surrounding_active) continue;
+
+        m_vertex.push_back(vertex_t(m_object[i]));
+        m_index.push_back(idx++);
     }
 
     m_vbo->bindData(m_vertex, true);

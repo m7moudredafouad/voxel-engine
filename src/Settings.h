@@ -14,7 +14,7 @@
 
 #define GRAVITY			(-2.5f)
 #define JUMP_HEIGHT		(BLOCK_HEIGHT*4.0f)
-#define SPEED			(BLOCK_WIDTH*2.0f)
+#define SPEED			(BLOCK_WIDTH*3.0f)
 
 #define MOUSE_SENSE		(0.2f)
 

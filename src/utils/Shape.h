@@ -37,6 +37,21 @@ public:
         return (idx < m_max_size) ? idx : -1;
     }
 
+    std::vector<int> at(int32_t idx) {
+        std::vector<int> idx_(m_dims, 0);
+        for (int i = 0; i < m_dims; i++) {
+            if (idx == 0 || m_stride[i] == 0) {
+                idx_[i] = idx;
+                break;
+            }
+            idx_[i] = idx / m_stride[i];
+            idx %= m_stride[i];
+        }
+
+        return idx_;
+    }
+
+
     int32_t get_max_size() const { return m_max_size; }
 
 };

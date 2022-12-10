@@ -63,8 +63,8 @@ void Window::loop(void (*init)(void), void (*render)(void), void (*destroy)(void
 	GLCall(glCullFace(GL_BACK));
 	GLCall(glEnable(GL_PROGRAM_POINT_SIZE));
 
-	// GLCall(glEnable(GL_BLEND));
-	// GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+	 GLCall(glEnable(GL_BLEND));
+	 GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 	
     while(!glfwWindowShouldClose(m_window)){
 		GLCall(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
