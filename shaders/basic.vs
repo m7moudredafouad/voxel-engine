@@ -4,12 +4,12 @@ layout (location = 0) in vec3 pos;
 layout (location = 1) in vec4 color;
 layout (location = 2) in float face;
 
-const uint UP = 0;
-const uint DOWN = 1;
-const uint LEFT = 2;
-const uint RIGHT = 3;
-const uint FRONT = 4;
-const uint BACK = 5;
+const int UP = 0;
+const int DOWN = 1;
+const int LEFT = 2;
+const int RIGHT = 3;
+const int FRONT = 4;
+const int BACK = 5;
 
 //const vec4 sunlight_color = vec4(0.94, 0.85, 0.64, 0.5);
 const vec4 sunlight_color = vec4(1, 1, 1, 1);
